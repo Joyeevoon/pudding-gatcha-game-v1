@@ -1,0 +1,625 @@
+/* ===== 全局变量（半糖梦境·糖果粉） ===== */
+:root {
+  --bg-gradient: linear-gradient(180deg, #FFF0F6 0%, #FFD9E8 55%, #FFC4DC 100%);
+  --card-bg: #FFFFFF;
+  --primary: #FF8FBE;
+  --accent: #FF6B9E;
+  --mint: #4EC5B4;
+  --text-primary: #5C3A4A;
+  --text-secondary: #A8788C;
+  --shadow-warm: rgba(255, 143, 190, 0.18);
+  --shadow-red: rgba(255, 107, 158, 0.35);
+  --radius-large: 24px;
+  --radius-medium: 20px;
+  --radius-pill: 50px;
+}
+
+/* ===== 基础重置 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;        /* 根层就不许滚，杜绝手机拖拽回弹 */
+  overscroll-behavior: none;
+  touch-action: manipulation;   /* 禁双击缩放，保留单击与滑动 */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  position: fixed;          /* 钉死视口，拖不动 */
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+  touch-action: manipulation;
+  -webkit-user-select: none;      /* 长按不弹放大镜/选中文本 */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  touch-action: manipulation;   /* 按钮上最易双击缩放，重点防护 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== 背景漂浮甜品（装饰，不可交互） ===== */
+.candy-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.candy-bg .candy {
+  position: absolute;
+  font-size: 26px;
+  opacity: 0.4;
+  filter: drop-shadow(0 4px 8px rgba(255, 107, 158, 0.25));
+  animation: candyFloat var(--dur, 9s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes candyFloat {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-16px) rotate(8deg); }
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+}
+
+/* 横屏 / 极矮窗口：一屏塞不下时退回可滚动，避免裁切 */
+@media (max-height: 600px) {
+  html { overflow: auto; }
+  body { position: static; overflow: visible; }
+  .page.active { height: auto; min-height: 100dvh; overflow: visible; }
+}
+
+/* ===== iOS 体感按钮 ===== */
+.tilt-permission-btn {
+  position: fixed;
+  bottom: 24px;
+  z-index: 300;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4ED4C3 0%, #4EC5B4 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 20px rgba(78, 197, 180, 0.4);
+}
+
+/* ===== 页面切换 ===== */
+.page {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.page.active {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;      /* 老浏览器回退 */
+  height: 100dvh;     /* 动态视口：手机不滚动就能看全 */
+  padding: 10px 16px 8px;
+  overflow: hidden;
+}
+
+/* 仓库页内容多，页内自己滚 */
+#warehouse-page.active {
+  overflow-y: auto;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 顶部 ===== */
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 0 6px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* 音乐按钮 */
+.music-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 20px;
+  box-shadow: 0 2px 8px var(--shadow-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-btn.off {
+  color: #D4A9BB;
+  text-decoration: line-through;
+}
+
+/* 仓库按钮（背包图标） */
+.warehouse-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  color: var(--accent);
+  box-shadow: 0 2px 10px var(--shadow-warm);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warehouse-icon {
+  color: var(--accent);
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #FF3B60;
+  color: white;
+  border-radius: 999px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(255, 59, 96, 0.5);
+  border: 2px solid #FFF;
+}
+
+/* ===== 扭蛋机区域 ===== */
+.machine-area {
+  flex: 1 1 auto;
+  min-height: 0;         /* 允许收缩，把空间让给奖品栏 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0 10px;
+}
+
+.machine-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: min(83vw, 354px);   /* 机身放大 30%：272 → 354px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.machine-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* 高度不够时等比缩小，不撑破一屏 */
+  filter: drop-shadow(0 10px 24px rgba(200, 100, 140, 0.28));
+}
+
+/* ===== 摇晃 + 闪光 ===== */
+.machine-img.shaking {
+  animation: shake 0.55s ease-in-out 3;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  20% { transform: rotate(-6deg) translateX(-8px); }
+  40% { transform: rotate(5deg) translateX(7px); }
+  60% { transform: rotate(-4deg) translateX(-5px); }
+  80% { transform: rotate(3deg) translateX(3px); }
+}
+
+.sparkle-layer {
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  opacity:  0;
+  overflow: visible;
+}
+
+.sparkle-layer.active {
+  opacity: 1;
+}
+
+.sparkle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #FFF;
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px 2px rgba(255, 255, 255, 0.9),
+    0 0 14px 6px rgba(255, 177, 209, 0.65);
+  animation: sparkleAnim var(--dur, 0.9s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes sparkleAnim {
+  0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: 1; }
+}
+
+/* ===== 出奖遮罩 ===== */
+.prize-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(63, 26, 45, 0.74);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  z-index: 200;
+  animation: overlayIn 0.3s ease;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.prize-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  perspective: 1000px;
+}
+
+.prize-3d {
+  width: min(46vw, 200px);
+  height: min(46vw, 200px);
+  object-fit: contain;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 24px rgba(255, 177, 209, 0.5));
+  transition: transform 0.08s ease-out;
+  transform-style: preserve-3d;
+  animation: prizeIn 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes prizeIn {
+  0% { transform: scale(0.1) translateY(80px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.prize-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #FFF;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  letter-spacing: 2px;
+}
+
+/* 标价胶囊 */
+.prize-price {
+  padding: 7px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #FFE3F0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.prize-price .rmb {
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+/* 收下按钮 - 薄荷绿 */
+.claim-btn {
+  width: 180px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, #5BD8C6 0%, #4EC5B4 100%);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  box-shadow: 0 6px 20px rgba(78, 197, 180, 0.4);
+  animation: claimPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes claimPulse {
+  0%, 95%, 100% { box-shadow: 0 6px 20px rgba(78, 197, 180, 0.4); }
+  97% { box-shadow: 0 6px 32px rgba(78, 197, 180, 0.7); }
+}
+
+/* ===== 扭蛋按钮 ===== */
+.gacha-btn {
+  width: 176px;
+  height: 48px;
+  margin-top: 8px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, #FF8AB5 0%, #FF5E9C 100%);
+  color: white;
+  font-size: 19px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  font-weight: bold;
+  letter-spacing: 4px;
+  box-shadow: 0 6px 18px var(--shadow-red);
+  flex: 0 0 auto;
+}
+
+.gacha-btn:disabled {
+  background: #D9C3CE;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  cursor: not-allowed;
+}
+
+/* ===== 奖品预览区 ===== */
+.prize-preview {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.scroll-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.55;
+  margin: 3px 0 5px;
+}
+
+/* 横向滚动容器 */
+.prize-list {
+  background: var(--card-bg);
+  border-radius: var(--radius-medium);
+  padding: 9px 12px;
+  box-shadow: 0 4px 16px var(--shadow-warm);
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;   /* iOS 惯性滚动 */
+  scrollbar-width: thin;
+  scrollbar-color: #FF8FBE transparent;
+  touch-action: pan-x;                  /* 只允许横向滑，竖向拖动不给反应 */
+  overscroll-behavior-x: contain;       /* 滑到头不透传给页面 */
+}
+
+.prize-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.prize-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.prize-list::-webkit-scrollbar-thumb {
+  background: #FFCADF;
+  border-radius: 3px;
+}
+
+.prize-item {
+  flex: 0 0 auto;
+  width: 68px;
+  position: relative;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.prize-item img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.prize-item.claimed img {
+  filter: grayscale(100%);
+  opacity: 0.45;
+}
+
+.prize-item.claimed::before {
+  content: "✓";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.prize-item-name {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prize-item-price {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ===== 免责声明 ===== */
+.disclaimer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  padding: 8px 0 6px;
+  margin-top: auto;
+}
+
+/* ===== 仓库页面 ===== */
+.warehouse-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 14px;
+}
+
+.warehouse-total {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px var(--shadow-warm);
+}
+
+.warehouse-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.warehouse-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: 14px;
+  padding-bottom: 24px;
+}
+
+.warehouse-item {
+  background: var(--card-bg);
+  border-radius: var(--radius-medium);
+  padding: 10px;
+  box-shadow: 0 4px 16px var(--shadow-warm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.08s ease-out;
+  transform-style: preserve-3d;
+}
+
+.warehouse-item .img-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warehouse-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.warehouse-item-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.warehouse-item-price {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.warehouse-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
